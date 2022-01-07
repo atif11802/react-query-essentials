@@ -19,7 +19,7 @@ export default App;
 
 const PokemonSearch = ({ pokemon }) => {
 	const queryInfo = useQuery(
-		pokemon,
+		["pokemon", pokemon],
 		async () => {
 			await new Promise((resolve) => setTimeout(resolve, 1000));
 
