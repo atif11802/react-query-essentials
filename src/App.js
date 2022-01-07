@@ -3,51 +3,43 @@ import axios from "axios";
 import { ReactQueryDevtools } from "react-query/devtools";
 import { useState } from "react";
 
+const email = "Sincere@april.biz";
+
+let existingUser = {
+	id: "ratul",
+	name: "atif",
+};
+
+const MyPosts = () => {
+	const { data, isLoading, isError } = useQuery(
+		"user",
+		async () => {
+			await new Promise((resolve) => setTimeout(resolve, 2000));
+			return axios
+				.get(`https://jsonplaceholder.typicode.com/users?email=${email}`)
+				.then((res) => res.data[0]);
+		},
+		{
+			initialData: existingUser,
+		}
+	);
+
+	return isLoading ? (
+		"loading .... "
+	) : isError ? (
+		"error"
+	) : (
+		<>{JSON.stringify(data)}</>
+	);
+};
+
 function App() {
-	const [pokemon, setPokemon] = useState("");
 	return (
 		<>
-			<input value={pokemon} onChange={(e) => setPokemon(e.target.value)} />
-			<PokemonSearch pokemon={pokemon} />
-
-			<ReactQueryDevtools initialIsOpen={false} />
+			<MyPosts />
+			<ReactQueryDevtools />
 		</>
 	);
 }
 
 export default App;
-
-const PokemonSearch = ({ pokemon }) => {
-	const queryInfo = useQuery(
-		["pokemon", pokemon],
-		async () => {
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-
-			return axios
-				.get(`https://pokeapi.co/api/v2/pokemon/${pokemon}`)
-				.then((response) => response.data);
-		},
-		{
-			retry: 2,
-			retryDelay: 1000,
-			enabled: pokemon.length > 0,
-		}
-	);
-
-	return queryInfo.isLoading ? (
-		"loading..."
-	) : queryInfo.isError ? (
-		queryInfo.error.message
-	) : (
-		<div>
-			{queryInfo.data?.sprites?.front_default ? (
-				<img src={queryInfo.data?.sprites?.front_default} alt='pokemon' />
-			) : (
-				"Pokemon not found"
-			)}
-
-			<br />
-			{queryInfo.isFetching ? "updating..." : null}
-		</div>
-	);
-};
