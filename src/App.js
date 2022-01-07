@@ -5,8 +5,9 @@ import { ReactQueryDevtools } from "react-query/devtools";
 function App() {
 	return (
 		<>
-			<Pokemon queryKey='pokemon1' />
-			<Pokemon queryKey='pokemon1' />
+			<Count />
+			<Pokemon />
+
 			<ReactQueryDevtools initialIsOpen={false} />
 		</>
 	);
@@ -14,20 +15,23 @@ function App() {
 
 export default App;
 
-const Pokemon = ({ queryKey }) => {
-	const queryInfo = useQuery(
-		queryKey,
-		async () => {
-			await new Promise((resolve) => setTimeout(resolve, 1000));
+const usePokemon = () => {
+	return useQuery("pokemons", async () => {
+		await new Promise((resolve) => setTimeout(resolve, 1000));
 
-			return axios
-				.get("https://pokeapi.co/api/v2/pokemon")
-				.then((res) => res.data.results);
-		},
-		{
-			cacheTime: 5000,
-		}
-	);
+		return axios
+			.get("https://pokeapi.co/api/v2/pokemon")
+			.then((res) => res.data.results);
+	});
+};
+
+const Count = () => {
+	const queryInfo = usePokemon();
+	return <h3>you are looking at {queryInfo.data?.length} pokemon</h3>;
+};
+
+const Pokemon = () => {
+	const queryInfo = usePokemon();
 
 	return queryInfo.isLoading ? (
 		"loading..."
