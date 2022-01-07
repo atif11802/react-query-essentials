@@ -28,6 +28,8 @@ const PokemonSearch = ({ pokemon }) => {
 				.then((response) => response.data);
 		},
 		{
+			retry: 2,
+			retryDelay: 1000,
 			enabled: pokemon.length > 0,
 		}
 	);
