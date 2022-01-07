@@ -1,12 +1,22 @@
 import { useQuery } from "react-query";
 import axios from "axios";
 import { ReactQueryDevtools } from "react-query/devtools";
-import { useState } from "react";
 
 function App() {
-	const [show, setShow] = useState(false);
+	return (
+		<>
+			<Pokemon queryKey='pokemon1' />
+			<Pokemon queryKey='pokemon1' />
+			<ReactQueryDevtools initialIsOpen={false} />
+		</>
+	);
+}
+
+export default App;
+
+const Pokemon = ({ queryKey }) => {
 	const queryInfo = useQuery(
-		"pokemon",
+		queryKey,
 		async () => {
 			await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -19,7 +29,7 @@ function App() {
 		}
 	);
 
-	return show && queryInfo.isLoading ? (
+	return queryInfo.isLoading ? (
 		"loading..."
 	) : queryInfo.isError ? (
 		queryInfo.error.message
@@ -30,9 +40,6 @@ function App() {
 			))}
 			<br />
 			{queryInfo.isFetching ? "updating..." : null}
-			<ReactQueryDevtools initialIsOpen={false} />
 		</div>
 	);
-}
-
-export default App;
+};
