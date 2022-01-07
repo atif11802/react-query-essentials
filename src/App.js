@@ -5,9 +5,8 @@ import { ReactQueryDevtools } from "react-query/devtools";
 function App() {
 	return (
 		<>
-			<Count />
 			<Pokemon />
-
+			<Berries />
 			<ReactQueryDevtools initialIsOpen={false} />
 		</>
 	);
@@ -15,23 +14,38 @@ function App() {
 
 export default App;
 
-const usePokemon = () => {
-	return useQuery("pokemons", async () => {
+const Pokemon = () => {
+	const queryInfo = useQuery("pokemons", async () => {
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 
 		return axios
 			.get("https://pokeapi.co/api/v2/pokemon")
 			.then((res) => res.data.results);
 	});
+
+	return queryInfo.isLoading ? (
+		"loading..."
+	) : queryInfo.isError ? (
+		queryInfo.error.message
+	) : (
+		<div>
+			{queryInfo.data?.map((pokemon) => (
+				<div key={pokemon.name}>{pokemon.name}</div>
+			))}
+			<br />
+			{queryInfo.isFetching ? "updating..." : null}
+		</div>
+	);
 };
 
-const Count = () => {
-	const queryInfo = usePokemon();
-	return <h3>you are looking at {queryInfo.data?.length} pokemon</h3>;
-};
+const Berries = () => {
+	const queryInfo = useQuery("berries", async () => {
+		await new Promise((resolve) => setTimeout(resolve, 1000));
 
-const Pokemon = () => {
-	const queryInfo = usePokemon();
+		return axios
+			.get("https://pokeapi.co/api/v2/berry")
+			.then((res) => res.data.results);
+	});
 
 	return queryInfo.isLoading ? (
 		"loading..."
