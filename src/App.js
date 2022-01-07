@@ -3,16 +3,22 @@ import axios from "axios";
 import { ReactQueryDevtools } from "react-query/devtools";
 
 function App() {
-	const queryInfo = useQuery("pokemon", async () => {
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+	const queryInfo = useQuery(
+		"pokemon",
+		async () => {
+			await new Promise((resolve) => setTimeout(resolve, 1000));
 
-		// if (true) {
-		// 	throw new Error("Something went wrong");
-		// }
-		return axios
-			.get("https://pokeapi.co/api/v2/pokemon")
-			.then((res) => res.data.results);
-	});
+			// if (true) {
+			// 	throw new Error("Something went wrong");
+			// }
+			return axios
+				.get("https://pokeapi.co/api/v2/pokemon")
+				.then((res) => res.data.results);
+		},
+		{
+			refetchOnWindowFocus: false,
+		}
+	);
 
 	return queryInfo.isLoading ? (
 		"loading..."
