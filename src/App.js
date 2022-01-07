@@ -18,13 +18,19 @@ function App() {
 export default App;
 
 const PokemonSearch = ({ pokemon }) => {
-	const queryInfo = useQuery(pokemon, async () => {
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+	const queryInfo = useQuery(
+		pokemon,
+		async () => {
+			await new Promise((resolve) => setTimeout(resolve, 1000));
 
-		return axios
-			.get(`https://pokeapi.co/api/v2/pokemon/${pokemon}`)
-			.then((response) => response.data);
-	});
+			return axios
+				.get(`https://pokeapi.co/api/v2/pokemon/${pokemon}`)
+				.then((response) => response.data);
+		},
+		{
+			enabled: pokemon.length > 0,
+		}
+	);
 
 	return queryInfo.isLoading ? (
 		"loading..."
@@ -32,7 +38,12 @@ const PokemonSearch = ({ pokemon }) => {
 		queryInfo.error.message
 	) : (
 		<div>
-			<img src={queryInfo.data?.sprites?.front_default} alt='pokemon' />
+			{queryInfo.data?.sprites?.front_default ? (
+				<img src={queryInfo.data?.sprites?.front_default} alt='pokemon' />
+			) : (
+				"Pokemon not found"
+			)}
+
 			<br />
 			{queryInfo.isFetching ? "updating..." : null}
 		</div>
