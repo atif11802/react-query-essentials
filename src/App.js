@@ -1,12 +1,15 @@
 import { useQuery } from "react-query";
 import axios from "axios";
 import { ReactQueryDevtools } from "react-query/devtools";
+import { useState } from "react";
 
 function App() {
+	const [pokemon, setPokemon] = useState("");
 	return (
 		<>
-			<Pokemon />
-			<Berries />
+			<input value={pokemon} onChange={(e) => setPokemon(e.target.value)} />
+			<PokemonSearch pokemon={pokemon} />
+
 			<ReactQueryDevtools initialIsOpen={false} />
 		</>
 	);
@@ -14,13 +17,13 @@ function App() {
 
 export default App;
 
-const Pokemon = () => {
-	const queryInfo = useQuery("pokemons", async () => {
+const PokemonSearch = ({ pokemon }) => {
+	const queryInfo = useQuery(pokemon, async () => {
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 
 		return axios
-			.get("https://pokeapi.co/api/v2/pokemon")
-			.then((res) => res.data.results);
+			.get(`https://pokeapi.co/api/v2/pokemon/${pokemon}`)
+			.then((response) => response.data);
 	});
 
 	return queryInfo.isLoading ? (
@@ -29,33 +32,7 @@ const Pokemon = () => {
 		queryInfo.error.message
 	) : (
 		<div>
-			{queryInfo.data?.map((pokemon) => (
-				<div key={pokemon.name}>{pokemon.name}</div>
-			))}
-			<br />
-			{queryInfo.isFetching ? "updating..." : null}
-		</div>
-	);
-};
-
-const Berries = () => {
-	const queryInfo = useQuery("berries", async () => {
-		await new Promise((resolve) => setTimeout(resolve, 1000));
-
-		return axios
-			.get("https://pokeapi.co/api/v2/berry")
-			.then((res) => res.data.results);
-	});
-
-	return queryInfo.isLoading ? (
-		"loading..."
-	) : queryInfo.isError ? (
-		queryInfo.error.message
-	) : (
-		<div>
-			{queryInfo.data?.map((pokemon) => (
-				<div key={pokemon.name}>{pokemon.name}</div>
-			))}
+			<img src={queryInfo.data?.sprites?.front_default} alt='pokemon' />
 			<br />
 			{queryInfo.isFetching ? "updating..." : null}
 		</div>
