@@ -1,8 +1,10 @@
 import { useQuery } from "react-query";
 import axios from "axios";
 import { ReactQueryDevtools } from "react-query/devtools";
+import { useState } from "react";
 
 function App() {
+	const [show, setShow] = useState(false);
 	const queryInfo = useQuery(
 		"pokemon",
 		async () => {
@@ -13,17 +15,17 @@ function App() {
 				.then((res) => res.data.results);
 		},
 		{
-			staleTime: 5000,
+			cacheTime: 5000,
 		}
 	);
 
-	return queryInfo.isLoading ? (
+	return show && queryInfo.isLoading ? (
 		"loading..."
 	) : queryInfo.isError ? (
 		queryInfo.error.message
 	) : (
-		<div className='App'>
-			{queryInfo.data.map((pokemon) => (
+		<div>
+			{queryInfo.data?.map((pokemon) => (
 				<div key={pokemon.name}>{pokemon.name}</div>
 			))}
 			<br />
