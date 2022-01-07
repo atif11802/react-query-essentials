@@ -5,37 +5,31 @@ import { useState } from "react";
 
 const email = "Sincere@april.biz";
 
+let existingUser = {
+	id: "ratul",
+	name: "atif",
+};
+
 const MyPosts = () => {
-	const { data, isLoading, isError } = useQuery("user", () => {
-		return axios
-			.get(`https://jsonplaceholder.typicode.com/users?email=${email}`)
-			.then((res) => res.data[0]);
-	});
-
-	const postsQuery = useQuery("posts", () => {
-		return axios
-			.get(`https://jsonplaceholder.typicode.com/posts?userId=${data.id}`)
-			.then((response) => response.data);
-	});
-
-	console.log(postsQuery);
+	const { data, isLoading, isError } = useQuery(
+		"user",
+		async () => {
+			await new Promise((resolve) => setTimeout(resolve, 2000));
+			return axios
+				.get(`https://jsonplaceholder.typicode.com/users?email=${email}`)
+				.then((res) => res.data[0]);
+		},
+		{
+			initialData: existingUser,
+		}
+	);
 
 	return isLoading ? (
 		"loading .... "
 	) : isError ? (
 		"error"
 	) : (
-		<>
-			{data.name}
-			{data.id}
-			<br />
-			<br />
-			{postsQuery.isIdle ? null : postsQuery.isLoading ? (
-				"loading posts..."
-			) : (
-				<h3>posts count : {postsQuery?.data?.length}</h3>
-			)}
-		</>
+		<>{JSON.stringify(data)}</>
 	);
 };
 
