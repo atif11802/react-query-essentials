@@ -2,27 +2,36 @@ import { useQuery, QueryCache, useQueryClient } from "react-query";
 import axios from "axios";
 import { ReactQueryDevtools } from "react-query/devtools";
 import { useState } from "react";
+import { useReducer } from "react";
 
 const email = "Sincere@april.biz";
 
+const fetchPosts = async () => {
+	const posts = await axios
+		.get("https://jsonplaceholder.typicode.com/posts")
+		.then((response) => response.data);
+
+	return posts;
+};
+
 function Posts({ setPostId }) {
-	const queryClient = useQueryClient();
+	const [count, increment] = useReducer((d) => d + 1, 0);
 
-	const { data, status } = useQuery("posts", async () => {
-		const posts = await axios
-			.get("https://jsonplaceholder.typicode.com/posts")
-			.then((response) => response.data);
+	const { data, status } = useQuery("posts", fetchPosts, {
+		onSuccess: (data) => {
+			increment();
+		},
+		onError: (err) => {
 
-		posts.forEach((post) => {
-			queryClient.setQueryData(["post", post.id], post);
-		});
-		console.log(posts);
-		return posts;
+		},
+		onSettled: (data,err) => {
+
+		}
 	});
 
 	return (
 		<div>
-			<h3>Posts</h3>
+			<h3>Posts:{count}</h3>
 			{status === "loading" ? (
 				<div>Loading...</div>
 			) : status === "error" ? (
