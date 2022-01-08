@@ -3,51 +3,80 @@ import axios from "axios";
 import { ReactQueryDevtools } from "react-query/devtools";
 import { useState } from "react";
 
+const email = "Sincere@april.biz";
+
+function Posts({ setPostId }) {
+	const { data, status } = useQuery("posts", () =>
+		axios
+			.get("https://jsonplaceholder.typicode.com/posts")
+			.then((response) => response.data)
+	);
+
+	return (
+		<div>
+			<h3>Posts</h3>
+			{status === "loading" ? (
+				<div>Loading...</div>
+			) : status === "error" ? (
+				<div>Error!</div>
+			) : (
+				<ul>
+					{data?.map((post) => (
+						<li key={post.id}>
+							<a href='#' onClick={() => setPostId(post.id)}>
+								{post.title}
+							</a>
+						</li>
+					))}
+				</ul>
+			)}
+		</div>
+	);
+}
+
+function Post({ postId, setPostId }) {
+	const { data, status, isFetching } = useQuery(["post", postId], () =>
+		axios
+			.get(`https://jsonplaceholder.typicode.com/posts/${postId}`)
+			.then((response) => response.data)
+	);
+
+	return (
+		<div>
+			<h3>Post</h3>
+			{status === "loading" ? (
+				<div>Loading...</div>
+			) : status === "error" ? (
+				<div>Error!</div>
+			) : (
+				<ul>
+					<li>
+						<a href='#' onClick={() => setPostId(-1)}>
+							Back
+						</a>
+					</li>
+					<li>{data.title}</li>
+					<li>{data.body}</li>
+					{isFetching && <div>updating...</div>}
+				</ul>
+			)}
+		</div>
+	);
+}
+
 function App() {
-	const [pokemon, setPokemon] = useState("");
+	const [postId, setPostId] = useState(-1);
+
 	return (
 		<>
-			<input value={pokemon} onChange={(e) => setPokemon(e.target.value)} />
-			<PokemonSearch pokemon={pokemon} />
-
-			<ReactQueryDevtools initialIsOpen={false} />
+			{postId > -1 ? (
+				<Post postId={postId} setPostId={setPostId} />
+			) : (
+				<Posts setPostId={setPostId} />
+			)}
+			<ReactQueryDevtools />
 		</>
 	);
 }
 
 export default App;
-
-const PokemonSearch = ({ pokemon }) => {
-	const queryInfo = useQuery(
-		["pokemon", pokemon],
-		async () => {
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-
-			return axios
-				.get(`https://pokeapi.co/api/v2/pokemon/${pokemon}`)
-				.then((response) => response.data);
-		},
-		{
-			retry: 2,
-			retryDelay: 1000,
-			enabled: pokemon.length > 0,
-		}
-	);
-
-	return queryInfo.isLoading ? (
-		"loading..."
-	) : queryInfo.isError ? (
-		queryInfo.error.message
-	) : (
-		<div>
-			{queryInfo.data?.sprites?.front_default ? (
-				<img src={queryInfo.data?.sprites?.front_default} alt='pokemon' />
-			) : (
-				"Pokemon not found"
-			)}
-
-			<br />
-			{queryInfo.isFetching ? "updating..." : null}
-		</div>
-	);
-};
