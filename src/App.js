@@ -1,4 +1,4 @@
-import { useQuery } from "react-query";
+import { useQuery, QueryCache, useQueryClient } from "react-query";
 import axios from "axios";
 import { ReactQueryDevtools } from "react-query/devtools";
 import { useState } from "react";
@@ -35,10 +35,20 @@ function Posts({ setPostId }) {
 }
 
 function Post({ postId, setPostId }) {
-	const { data, status, isFetching } = useQuery(["post", postId], () =>
-		axios
-			.get(`https://jsonplaceholder.typicode.com/posts/${postId}`)
-			.then((response) => response.data)
+	const queryClient = useQueryClient();
+	const posts = queryClient.getQueryData("posts");
+
+	const { data, status, isFetching } = useQuery(
+		["post", postId],
+		() => {
+			return axios
+				.get(`https://jsonplaceholder.typicode.com/posts/${postId}`)
+				.then((response) => response.data);
+		},
+		{
+			initialData: posts.find((post) => post.id === postId),
+			initialStale: true,
+		}
 	);
 
 	return (
