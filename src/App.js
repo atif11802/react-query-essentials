@@ -5,38 +5,75 @@ import { useState } from "react";
 
 const email = "Sincere@april.biz";
 
-let existingUser = {
-	id: "ratul",
-	name: "atif",
-};
-
-const MyPosts = () => {
-	const { data, isLoading, isError } = useQuery(
-		"user",
-		async () => {
-			await new Promise((resolve) => setTimeout(resolve, 2000));
-			return axios
-				.get(`https://jsonplaceholder.typicode.com/users?email=${email}`)
-				.then((res) => res.data[0]);
-		},
-		{
-			initialData: existingUser,
-		}
+function Posts({ setPostId }) {
+	const { data, status } = useQuery("posts", () =>
+		axios
+			.get("https://jsonplaceholder.typicode.com/posts")
+			.then((response) => response.data)
 	);
 
-	return isLoading ? (
-		"loading .... "
-	) : isError ? (
-		"error"
-	) : (
-		<>{JSON.stringify(data)}</>
+	return (
+		<div>
+			<h3>Posts</h3>
+			{status === "loading" ? (
+				<div>Loading...</div>
+			) : status === "error" ? (
+				<div>Error!</div>
+			) : (
+				<ul>
+					{data?.map((post) => (
+						<li key={post.id}>
+							<a href='#' onClick={() => setPostId(post.id)}>
+								{post.title}
+							</a>
+						</li>
+					))}
+				</ul>
+			)}
+		</div>
 	);
-};
+}
+
+function Post({ postId, setPostId }) {
+	const { data, status, isFetching } = useQuery(["post", postId], () =>
+		axios
+			.get(`https://jsonplaceholder.typicode.com/posts/${postId}`)
+			.then((response) => response.data)
+	);
+
+	return (
+		<div>
+			<h3>Post</h3>
+			{status === "loading" ? (
+				<div>Loading...</div>
+			) : status === "error" ? (
+				<div>Error!</div>
+			) : (
+				<ul>
+					<li>
+						<a href='#' onClick={() => setPostId(-1)}>
+							Back
+						</a>
+					</li>
+					<li>{data.title}</li>
+					<li>{data.body}</li>
+					{isFetching && <div>updating...</div>}
+				</ul>
+			)}
+		</div>
+	);
+}
 
 function App() {
+	const [postId, setPostId] = useState(-1);
+
 	return (
 		<>
-			<MyPosts />
+			{postId > -1 ? (
+				<Post postId={postId} setPostId={setPostId} />
+			) : (
+				<Posts setPostId={setPostId} />
+			)}
 			<ReactQueryDevtools />
 		</>
 	);
