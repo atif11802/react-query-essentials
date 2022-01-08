@@ -1,33 +1,33 @@
 import { useQuery, QueryCache, useQueryClient } from "react-query";
 import axios from "axios";
+import {
+	BrowserRouter as Router,
+	Routes,
+	Route,
+	useNavigate,
+	Link,
+	useParams,
+} from "react-router-dom";
 import { ReactQueryDevtools } from "react-query/devtools";
-import { useState } from "react";
+
 import { useReducer } from "react";
-
-const email = "Sincere@april.biz";
-
-const fetchPosts = async () => {
-	const posts = await axios
-		.get("https://jsonplaceholder.typicode.com/posts")
-		.then((response) => response.data);
-
-	return posts;
-};
 
 function Posts({ setPostId }) {
 	const [count, increment] = useReducer((d) => d + 1, 0);
 
-	const { data, status } = useQuery("posts", fetchPosts, {
-		onSuccess: (data) => {
-			increment();
-		},
-		onError: (err) => {
+	const { data, status } = useQuery(
+		"posts",
+		async () => {
+			const posts = await axios
+				.get("https://jsonplaceholder.typicode.com/posts")
+				.then((response) => response.data);
 
+			return posts;
 		},
-		onSettled: (data,err) => {
-
+		{
+			cacheTime: 10000,
 		}
-	});
+	);
 
 	return (
 		<div>
@@ -40,9 +40,7 @@ function Posts({ setPostId }) {
 				<ul>
 					{data?.map((post) => (
 						<li key={post.id}>
-							<a href='#' onClick={() => setPostId(post.id)}>
-								{post.title}
-							</a>
+							<Link to={`/${post.id}`}>{post.title}</Link>
 						</li>
 					))}
 				</ul>
@@ -51,7 +49,12 @@ function Posts({ setPostId }) {
 	);
 }
 
-function Post({ postId, setPostId }) {
+function Post() {
+	const { postId } = useParams();
+
+	console.log(postId);
+
+	let navigate = useNavigate();
 	const { data, status, isFetching } = useQuery(["post", postId], () => {
 		return axios
 			.get(`https://jsonplaceholder.typicode.com/posts/${postId}`)
@@ -68,9 +71,7 @@ function Post({ postId, setPostId }) {
 			) : (
 				<ul>
 					<li>
-						<a href='#' onClick={() => setPostId(-1)}>
-							Back
-						</a>
+						<Link to='/'>Back</Link>
 					</li>
 					<li>{data.title}</li>
 					<li>{data.body}</li>
@@ -82,15 +83,14 @@ function Post({ postId, setPostId }) {
 }
 
 function App() {
-	const [postId, setPostId] = useState(-1);
-
 	return (
 		<>
-			{postId > -1 ? (
-				<Post postId={postId} setPostId={setPostId} />
-			) : (
-				<Posts setPostId={setPostId} />
-			)}
+			<Router>
+				<Routes>
+					<Route path='/' element={<Posts />} />
+					<Route path='/:postId' element={<Post />} />
+				</Routes>
+			</Router>
 			<ReactQueryDevtools />
 		</>
 	);
