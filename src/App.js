@@ -1,53 +1,99 @@
-import { useQuery } from "react-query";
+import { useQuery, QueryCache, useQueryClient } from "react-query";
 import axios from "axios";
+import {
+	BrowserRouter as Router,
+	Routes,
+	Route,
+	useNavigate,
+	Link,
+	useParams,
+} from "react-router-dom";
 import { ReactQueryDevtools } from "react-query/devtools";
-import { useState } from "react";
+
+import { useReducer } from "react";
+
+function Posts({ setPostId }) {
+	const [count, increment] = useReducer((d) => d + 1, 0);
+
+	const { data, status } = useQuery(
+		"posts",
+		async () => {
+			const posts = await axios
+				.get("https://jsonplaceholder.typicode.com/posts")
+				.then((response) => response.data);
+
+			return posts;
+		},
+		{
+			cacheTime: 10000,
+		}
+	);
+
+	return (
+		<div>
+			<h3>Posts:{count}</h3>
+			{status === "loading" ? (
+				<div>Loading...</div>
+			) : status === "error" ? (
+				<div>Error!</div>
+			) : (
+				<ul>
+					{data?.map((post) => (
+						<li key={post.id}>
+							<Link to={`/${post.id}`}>{post.title}</Link>
+						</li>
+					))}
+				</ul>
+			)}
+		</div>
+	);
+}
+
+function Post() {
+	const { postId } = useParams();
+
+	console.log(postId);
+
+	let navigate = useNavigate();
+	const { data, status, isFetching } = useQuery(["post", postId], () => {
+		return axios
+			.get(`https://jsonplaceholder.typicode.com/posts/${postId}`)
+			.then((response) => response.data);
+	});
+
+	return (
+		<div>
+			<h3>Post</h3>
+			{status === "loading" ? (
+				<div>Loading...</div>
+			) : status === "error" ? (
+				<div>Error!</div>
+			) : (
+				<ul>
+					<li>
+						<Link to='/'>Back</Link>
+					</li>
+					<li>{data.title}</li>
+					<li>{data.body}</li>
+					{isFetching && <div>updating...</div>}
+				</ul>
+			)}
+		</div>
+	);
+}
 
 function App() {
-	const [pokemon, setPokemon] = useState("");
 	return (
 		<>
-			<input value={pokemon} onChange={(e) => setPokemon(e.target.value)} />
-			<PokemonSearch pokemon={pokemon} />
-
-			<ReactQueryDevtools initialIsOpen={false} />
+			<Router>
+				<Routes>
+					<Route path='/' element={<Posts />} />
+					<Route path='/:postId' element={<Post />} />
+				</Routes>
+			</Router>
+			<ReactQueryDevtools />
 		</>
 	);
 }
 
 export default App;
-
-const PokemonSearch = ({ pokemon }) => {
-	const queryInfo = useQuery(
-		["pokemon", pokemon],
-		async () => {
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-
-			return axios
-				.get(`https://pokeapi.co/api/v2/pokemon/${pokemon}`)
-				.then((response) => response.data);
-		},
-		{
-			retry: 2,
-			retryDelay: 1000,
-			enabled: pokemon.length > 0,
-		}
-	);
-
-	return queryInfo.isLoading ? (
-		"loading..."
-	) : queryInfo.isError ? (
-		queryInfo.error.message
-	) : (
-		<div>
-			{queryInfo.data?.sprites?.front_default ? (
-				<img src={queryInfo.data?.sprites?.front_default} alt='pokemon' />
-			) : (
-				"Pokemon not found"
-			)}
-
-			<br />
-			{queryInfo.isFetching ? "updating..." : null}
-		</div>
-	);
-};
