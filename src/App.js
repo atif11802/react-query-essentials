@@ -17,21 +17,19 @@ function Posts() {
 		"posts",
 		async () => {
 			return await axios
-				.get("http://worldtimeapi.org/api/timezone/Asia/Dhaka")
+				.get(
+					"http://www.randomnumberapi.com/api/v1.0/random?min=100&max=1000&count=5'"
+				)
 				.then((response) => response.data);
-		},
-		{
-			refetchInterval: 1000,
-			refetchIntervalInBackground: true,
 		}
 	);
-
+	console.log(data);
 	return (
 		<div>
-			<h1>Server Time: {isFetching ? <>...</> : null}</h1>
-			<div>
-				{isLoading ? <div>Loading...</div> : <div>{data.datetime}</div>}
-			</div>
+			<h1>Random Number: {isFetching ? <>...</> : null}</h1>
+			{/* <div>
+				{isLoading ? <div>Loading random number...</div> : <div>{data}</div>}
+			</div> */}
 		</div>
 	);
 }
