@@ -6,11 +6,19 @@ import { useState } from "react";
 const email = "Sincere@april.biz";
 
 function Posts({ setPostId }) {
-	const { data, status } = useQuery("posts", () =>
-		axios
+	const queryClient = useQueryClient();
+
+	const { data, status } = useQuery("posts", async () => {
+		const posts = await axios
 			.get("https://jsonplaceholder.typicode.com/posts")
-			.then((response) => response.data)
-	);
+			.then((response) => response.data);
+
+		posts.forEach((post) => {
+			queryClient.setQueryData(["post", post.id], post);
+		});
+		console.log(posts);
+		return posts;
+	});
 
 	return (
 		<div>
@@ -35,21 +43,11 @@ function Posts({ setPostId }) {
 }
 
 function Post({ postId, setPostId }) {
-	const queryClient = useQueryClient();
-	const posts = queryClient.getQueryData("posts");
-
-	const { data, status, isFetching } = useQuery(
-		["post", postId],
-		() => {
-			return axios
-				.get(`https://jsonplaceholder.typicode.com/posts/${postId}`)
-				.then((response) => response.data);
-		},
-		{
-			initialData: posts.find((post) => post.id === postId),
-			initialStale: true,
-		}
-	);
+	const { data, status, isFetching } = useQuery(["post", postId], () => {
+		return axios
+			.get(`https://jsonplaceholder.typicode.com/posts/${postId}`)
+			.then((response) => response.data);
+	});
 
 	return (
 		<div>
